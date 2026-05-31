@@ -1,13 +1,22 @@
-.PHONY: run test lint install
+.PHONY: install lint format test run up down logs mysql
+
+install:
+	pip install -e ".[dev]"
+
+lint:
+	ruff check .
 
 run:
 	uvicorn backend.main:app --reload
 
-test:
-	pytest -v
+up:
+	docker compose up --build
 
-lint:
-	ruff check . && mypy backend
+down:
+	docker compose down
 
-install:
-	pip install -e ".[dev]"
+logs:
+	docker compose logs -f backend
+
+mysql:
+	docker compose exec db mysql -uroot -proot feedapp
