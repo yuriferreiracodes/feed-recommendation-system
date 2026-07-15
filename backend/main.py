@@ -1,68 +1,46 @@
-from fastapi import FastAPI, HTTPException
+import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
+from backend.database import engine
+from backend.exceptions import register_exception_handlers
+from backend.routers.health import router as health_router
+
+logging.basicConfig(level=settings.LOG_LEVEL)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: verify the DB connection pool is reachable.
+    with engine.connect():
+        logger.info("Database connection established")
+    yield
+    # Shutdown: release the connection pool.
+    engine.dispose()
+    logger.info("Database connection pool disposed")
+
 
 app = FastAPI(
     title="Feed Recommendation System",
     description="A personalized feed recommendation system.",
     version="0.1.0",
+    lifespan=lifespan,
+    openapi_url="/api/openapi.json",
+    docs_url="/api/docs",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+register_exception_handlers(app)
 
-
-def _check_db() -> None:
-    from sqlalchemy import create_engine, text
-
-    engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-    finally:
-        engine.dispose()
-
-
-def _check_redis() -> None:
-    import redis
-
-    client = redis.from_url(settings.REDIS_URL, socket_connect_timeout=5)
-    try:
-        client.ping()
-    finally:
-        client.close()
-
-
-def _check_elasticsearch() -> None:
-    from elasticsearch import Elasticsearch
-
-    client = Elasticsearch(settings.ELASTICSEARCH_URL, request_timeout=5)
-    try:
-        if not client.ping():
-            raise RuntimeError("ping returned false")
-    finally:
-        client.close()
-
-
-@app.get("/health/ready")
-def ready() -> dict[str, str]:
-    checks = {
-        "db": _check_db,
-        "redis": _check_redis,
-        "elasticsearch": _check_elasticsearch,
-    }
-
-    status: dict[str, str] = {}
-    for name, check in checks.items():
-        try:
-            check()
-            status[name] = "ok"
-        except Exception as exc:  # noqa: BLE001 - report any failure as not-ready
-            status[name] = f"error: {exc}"
-
-    if any(value != "ok" for value in status.values()):
-        raise HTTPException(status_code=503, detail=status)
-
-    return status
+app.include_router(health_router, prefix="/api/v1")
