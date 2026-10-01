@@ -10,6 +10,7 @@ from backend.config import settings
 from backend.database import engine
 from backend.exceptions import register_exception_handlers
 from backend.routers.content import router as content_router
+from backend.routers.events import router as events_router
 from backend.routers.health import router as health_router
 from backend.routers.users import router as users_router
 
@@ -62,3 +63,4 @@ register_exception_handlers(app)
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
 app.include_router(content_router, prefix="/api/v1/content", tags=["content"])
+app.include_router(events_router, prefix="/api/v1/events", tags=["events"])
