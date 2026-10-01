@@ -1,4 +1,4 @@
-.PHONY: install lint format test run up down logs mysql
+.PHONY: install lint format test run up down logs mysql migrate migration rollback
 
 install:
 	pip install -e ".[dev]"
@@ -20,3 +20,12 @@ logs:
 
 mysql:
 	docker compose exec db mysql -uroot -proot feedapp
+
+migrate:
+	alembic upgrade head
+
+migration:
+	alembic revision --autogenerate -m "$(msg)"
+
+rollback:
+	alembic downgrade -1

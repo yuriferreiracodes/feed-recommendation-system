@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from backend.schemas.common import ErrorResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AppException(Exception):
@@ -33,4 +37,15 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=exc.status_code,
             content=ErrorResponse(detail=exc.detail, code=exc.code).model_dump(),
+        )
+
+    # Catch-all so unexpected errors return a consistent ErrorResponse shape
+    # instead of a bare 500. FastAPI's own handler already covers HTTPException
+    # (and preserves structured details such as the readiness probe's dict).
+    @app.exception_handler(Exception)
+    async def handle_unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
+        logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+        return JSONResponse(
+            status_code=500,
+            content=ErrorResponse(detail="Internal server error", code="internal_error").model_dump(),
         )
