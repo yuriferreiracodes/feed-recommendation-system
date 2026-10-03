@@ -32,3 +32,6 @@ Thumbs.db
 
 # Project task specs
 /todo
+
+# Local compose overrides
+docker-compose.override.yml

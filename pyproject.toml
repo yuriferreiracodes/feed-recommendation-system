@@ -15,7 +15,7 @@ dependencies = [
     "sqlalchemy",
     "pymysql",
     "redis",
-    "elasticsearch",
+    "elasticsearch>=8.13,<9",
     "alembic",
 ]
 

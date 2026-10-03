@@ -25,6 +25,11 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 COPY backend/ ./backend/
 
+# Migration config: the entrypoint runs `alembic upgrade head` before serving.
+COPY alembic.ini ./
+COPY alembic/ ./alembic/
+
 EXPOSE 8000
 
+ENTRYPOINT ["/app/backend/entrypoint.sh"]
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
