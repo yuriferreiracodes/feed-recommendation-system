@@ -13,13 +13,15 @@ export default function ExplorePage() {
             key={`${item.id}-${index}`}
             className="aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-900"
           >
-            <img
-              src={item.image_url}
-              alt={item.title}
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full object-cover transition-transform hover:scale-105"
-            />
+            {item.image_url && (
+              <img
+                src={item.thumbnail_url ?? item.image_url}
+                alt={item.title}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover transition-transform hover:scale-105"
+              />
+            )}
           </div>
         ))}
       </div>
