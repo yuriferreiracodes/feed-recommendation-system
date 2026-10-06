@@ -13,6 +13,18 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
+    # --- Object storage (MinIO / S3) -------------------------------------
+    # Uploaded images live in MinIO; the DB only stores object keys.
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET: str = "feed-media"
+    MINIO_SECURE: bool = False  # True once the endpoint is behind TLS
+
+    # --- Image uploads ---------------------------------------------------
+    MEDIA_MAX_UPLOAD_BYTES: int = 10 * 1024 * 1024  # 10 MiB
+    MEDIA_THUMBNAIL_MAX_PX: int = 480  # longest side of the generated thumbnail
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

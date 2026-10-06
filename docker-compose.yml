@@ -57,6 +57,32 @@ services:
     networks:
       - app_net
 
+  minio:
+    # MinIO publishes only "latest" plus timestamped RELEASE.* tags; pin a
+    # RELEASE tag here if you need byte-identical environments across machines.
+    image: minio/minio:latest
+    container_name: feed-minio
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # web console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      # "mc ready local" is MinIO's own recommended probe: mc ships in the
+      # image and the "local" alias is preconfigured, so no curl dependency.
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - app_net
+
   backend:
     build:
       context: .
@@ -73,6 +99,8 @@ services:
       redis:
         condition: service_healthy
       elasticsearch:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/v1/health').status==200 else 1)\""]
@@ -108,6 +136,7 @@ volumes:
   mysql_data:
   redis_data:
   es_data:
+  minio_data:
 
 networks:
   app_net:

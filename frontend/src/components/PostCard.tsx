@@ -42,20 +42,23 @@ export default function PostCard({ item }: PostCardProps) {
       </header>
 
       {/* The intrinsic ratio reserves the slot before the image arrives, so the
-          feed never jumps while scrolling. */}
+          feed never jumps while scrolling. Content with no upload yet keeps a
+          square placeholder rather than collapsing the card. */}
       <div
         className="w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900"
-        style={{ aspectRatio: `${item.image_width} / ${item.image_height}` }}
+        style={{ aspectRatio: `${item.image_width ?? 1} / ${item.image_height ?? 1}` }}
       >
-        <img
-          src={item.image_url}
-          alt={item.title}
-          width={item.image_width}
-          height={item.image_height}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
+        {item.image_url && (
+          <img
+            src={item.image_url}
+            alt={item.title}
+            width={item.image_width ?? undefined}
+            height={item.image_height ?? undefined}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-4 px-4 pt-3">

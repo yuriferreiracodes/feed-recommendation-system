@@ -26,13 +26,15 @@ export interface Content {
   updated_at: string;
 
   // --- Media ---------------------------------------------------------------
-  // Not on the backend model yet: the image pivot needs a migration adding
-  // these columns. Intrinsic width/height are required, not decorative — the
-  // feed reserves each slot's space before the image loads to avoid reflow.
-  image_url: string;
-  image_width: number;
-  image_height: number;
-  // Tiny base64 preview rendered while the full image streams in.
+  // Served by GET /api/v1/media/{key}; null until an image is uploaded through
+  // PUT /api/v1/content/{id}/image. Intrinsic width/height are not decorative —
+  // the feed reserves each slot's space before the image loads, to avoid reflow.
+  image_url: string | null;
+  image_width: number | null;
+  image_height: number | null;
+  image_content_type: string | null;
+  image_bytes: number | null;
+  // Downscaled JPEG derived on upload (longest side MEDIA_THUMBNAIL_MAX_PX).
   thumbnail_url: string | null;
 }
 

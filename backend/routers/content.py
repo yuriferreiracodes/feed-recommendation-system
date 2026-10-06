@@ -1,11 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, File, Query, UploadFile, status
 
-from backend.dependencies import DbSession
+from backend.dependencies import DbSession, StorageClient
 from backend.schemas.common import PaginatedResponse
 from backend.schemas.content import ContentCreate, ContentRead, ContentUpdate
-from backend.services import content_service
+from backend.services import content_service, media_service
 
 router = APIRouter()
 
@@ -35,3 +35,28 @@ def get_content(content_id: str, db: DbSession):
 @router.patch("/{content_id}", response_model=ContentRead)
 def update_content(content_id: str, data: ContentUpdate, db: DbSession):
     return content_service.update_content(db, content_id, data)
+
+
+@router.put(
+    "/{content_id}/image",
+    response_model=ContentRead,
+    summary="Upload or replace the content's image",
+)
+def upload_content_image(
+    content_id: str,
+    db: DbSession,
+    storage: StorageClient,
+    file: UploadFile = File(description="JPEG, PNG or WebP image"),
+):
+    """Store the image in MinIO, derive a thumbnail, and record its metadata.
+
+    Idempotent by design: uploading again replaces the previous image, which is
+    why this is PUT and not POST.
+    """
+    return media_service.attach_image(db, storage, content_id, file)
+
+
+@router.delete("/{content_id}/image", response_model=ContentRead)
+def delete_content_image(content_id: str, db: DbSession, storage: StorageClient):
+    """Remove the content's image and its thumbnail from object storage."""
+    return media_service.remove_image(db, storage, content_id)

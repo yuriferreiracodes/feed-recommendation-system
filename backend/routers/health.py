@@ -42,12 +42,20 @@ def _check_elasticsearch() -> None:
         client.close()
 
 
+def _check_minio() -> None:
+    from backend.storage import get_client
+
+    if not get_client().bucket_exists(settings.MINIO_BUCKET):
+        raise RuntimeError(f"bucket {settings.MINIO_BUCKET} does not exist")
+
+
 @router.get("/health/ready")
 def ready() -> dict[str, str]:
     checks = {
         "db": _check_db,
         "redis": _check_redis,
         "elasticsearch": _check_elasticsearch,
+        "minio": _check_minio,
     }
 
     status: dict[str, str] = {}

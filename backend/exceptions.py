@@ -31,6 +31,28 @@ class ConflictError(AppException):
     code = "conflict"
 
 
+class BadRequestError(AppException):
+    status_code = 400
+    code = "bad_request"
+
+
+class PayloadTooLargeError(AppException):
+    status_code = 413
+    code = "payload_too_large"
+
+
+class UnsupportedMediaTypeError(AppException):
+    status_code = 415
+    code = "unsupported_media_type"
+
+
+class StorageUnavailableError(AppException):
+    """Object storage (MinIO) could not serve the request."""
+
+    status_code = 503
+    code = "storage_unavailable"
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppException)
     async def handle_app_exception(request: Request, exc: AppException) -> JSONResponse:

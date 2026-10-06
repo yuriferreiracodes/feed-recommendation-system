@@ -38,6 +38,8 @@ function post(
     image_url: `https://picsum.photos/seed/${seed}/${width}/${height}`,
     image_width: width,
     image_height: height,
+    image_content_type: "image/jpeg",
+    image_bytes: null,
     thumbnail_url: null,
     ranking_score: score,
     strategy,

@@ -17,6 +17,9 @@ dependencies = [
     "redis",
     "elasticsearch>=8.13,<9",
     "alembic",
+    "minio",
+    "pillow",
+    "python-multipart",
 ]
 
 [project.optional-dependencies]
